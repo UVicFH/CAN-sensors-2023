@@ -24,6 +24,12 @@ int message_num = 0;
 // will need a byte variable. Define any other constants or variables 
 // needed that can be defined outside of a function.
 
+// -> engine start vars
+#define ENGINE_START_BUTTON_PIN ##
+
+// -> motor start vars
+#define MOTOR_START_BUTTON_PIN ##
+
 // -> fuel pump status vars
 #define FUEL_SIGNAL_PIN ##
 byte Fuel_Pump_OK_data[1] = {0x00};
@@ -63,7 +69,7 @@ void CAN_message_handler();
 // TODO: for any functions you write at the base of the file, define the
 // signature of the function here for everything to compile and be happy
 
-void Shift();
+void shift();
 
 /********** Setup/Initialization ***************/
 
@@ -78,6 +84,12 @@ void setup() {
 
   // TODO: Use setup for initializing the state of any variables
   // or initializing pinmodes/pin read or write. Anything that needs setup
+
+  // Engine and motor button setups
+  pinMode( ENGINE_START_BUTTON_PIN, INPUT_PULLUP);
+  attachInterrupt( digitalPinToInterrupt(ENGINE_START_BUTTON_PIN), engine_start, RISING);
+  pinMode( MOTOR_START_BUTTON_PIN, INPUT_PULLUP);
+  attachInterrupt( digitalPinToInterrupt(ENGINE_START_BUTTON_PIN), motor_start, RISING);
 }
 
 /********** Main Loop ***************/
@@ -87,6 +99,7 @@ void loop() {
 
   can_delay_cycle = millis() - can_timeold;
   if (can_delay_cycle >= CAN_MSG_DELAY) message_cycle();
+
 }
 
 /********** Function Implementations ***************/
@@ -103,6 +116,8 @@ void init_CAN()
     delay(100);
   }
   Serial.println("CAN init ok!");
+
+  
 }
 
 /* 
@@ -200,6 +215,27 @@ void CAN_message_handler()
 }
 
 /*
+  Function: The engine_start() function starts the ICE (Internal Combustion Engine) of the car. 
+            It is an ISR called by pushing the Engine Start button on the steering wheel.
+*/
+
+void engine_start() 
+{
+  // TODO: Implement process for starting engine.
+  // Does it need to turn off the motor if motor running?
+}
+
+/*
+  Function: The motor_start() function starts the electric motor of the car.
+            It is an ISR called by pushing the Motor Start button on the steering wheel.
+*/
+void motor_start()
+{
+  // TODO: Implement process for starting motor.
+  // Does it need to turn off engine if engine running?
+} 
+
+/*
   Function: The shift function reads the data message sent by the steering
             wheel canduino and triggers the actuator attached to the shifter
             such that the gear is shifted up or down relative to what value
@@ -213,4 +249,5 @@ void shift()
     // shift function implementation
   }
 }
+
 
