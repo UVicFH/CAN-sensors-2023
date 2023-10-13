@@ -106,23 +106,18 @@ void loop() {
   /* Engine/Motor Start Buttons*/
   engine_start_button.read();
 
-  // send CAN message if start engine/motor buttons have been pushed
+  // send CAN message if start engine button has been pushed
   if(engine_start_button.wasReleased()) //returns true on falling edge, when there's a change in read() value
   {
     // send engine start CAN message
-    // Serial.println("SEND ENGINE CAN MSG");
     // send_CAN_msg(); //TODO: set up messageID, 
   }
-
+  // send CAN message if start motor button has been pushed
   if(motor_start_button.wasReleased())
   {
     // send motor start CAN message
-    Serial.println("SEND MOTOR CAN MSG");
     // send_CAN_msg(); //TODO: set up messageID, 
   }
-
-
-
 }
 
 /********** Function Implementations ***************/
