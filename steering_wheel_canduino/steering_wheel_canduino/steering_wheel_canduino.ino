@@ -26,9 +26,15 @@ int message_num = 0;
 
 // -> engine start vars
 #define ENGINE_START_BUTTON_PIN ##
+bool start_engine_flag;
 
 // -> motor start vars
 #define MOTOR_START_BUTTON_PIN ##
+bool start_motor_flag;
+
+// -> start button vars
+unsigned long lastDebounceTime = 0;
+unsigned long bounceDelay = 200;
 
 // -> fuel pump status vars
 #define FUEL_SIGNAL_PIN ##
@@ -180,7 +186,7 @@ void message_cycle()
 
 /*
   Function: The message_read() function gets the CAN ID of the current message on the
-            CAN network and routes the program to the apropriate handler.
+            CAN network and routes the program to the appropriate handler.
 */
 void CAN_message_handler()
 {
@@ -214,25 +220,43 @@ void CAN_message_handler()
   }
 }
 
-/*
-  Function: The engine_start() function starts the ICE (Internal Combustion Engine) of the car. 
-            It is an ISR called by pushing the Engine Start button on the steering wheel.
-*/
 
-void engine_start() 
+/*
+  Function: The debounce() function sets a delay to avoid the switches "bounces" calling
+            the function multiple times. 
+            The ISR is still called on each "bounce" however, which could be changed by polling instead of using interrupts.
+*/
+bool debounce()
 {
-  // TODO: Implement process for starting engine.
-  // Does it need to turn off the motor if motor running?
+  // check to see if enough time has passed
+  // since the last press to ignore any noise:
+  if ((millis() - lastDebounceTime) > bounceDelay) {
+    lastDebounceTime = millis();
+    return true;
+  }
+  return false;
 }
 
 /*
-  Function: The motor_start() function starts the electric motor of the car.
+  Function: The engine_start() function sets the flag to send a CAN message to start the engine. 
+            It is an ISR called by pushing the Engine Start button on the steering wheel.
+*/
+void engine_start()
+{
+  if(debounce()) {
+    start_engine_flag = true;
+  }
+}
+
+/*
+  Function: The motor_start() sets the flag to send a CAN message to start the electric motor of the car.
             It is an ISR called by pushing the Motor Start button on the steering wheel.
 */
 void motor_start()
 {
-  // TODO: Implement process for starting motor.
-  // Does it need to turn off engine if engine running?
+  if(debounce()) {
+    start_motor_flag = true;
+  }
 } 
 
 /*
