@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include "mcp2515_can.h"
 #include "mcp2515_can_dfs.h"
+#include "JC_Button.h"  // library for input buttons
 
 typedef unsigned char byte;
 
@@ -26,15 +27,11 @@ int message_num = 0;
 
 // -> engine start vars
 #define ENGINE_START_BUTTON_PIN ##
-bool start_engine_flag;
+Button engine_start_button(ENGINE_START_BUTTON_PIN, 100, true, true); //btn(pin, debounceTime, pullupEnabled, logicInvert)
 
 // -> motor start vars
 #define MOTOR_START_BUTTON_PIN ##
-bool start_motor_flag;
-
-// -> start button vars
-unsigned long lastDebounceTime = 0;
-unsigned long bounceDelay = 200;
+Button motor_start_button(MOTOR_START_BUTTON_PIN, 100, true, true);
 
 // -> fuel pump status vars
 #define FUEL_SIGNAL_PIN ##
@@ -92,10 +89,9 @@ void setup() {
   // or initializing pinmodes/pin read or write. Anything that needs setup
 
   // Engine and motor button setups
-  pinMode( ENGINE_START_BUTTON_PIN, INPUT_PULLUP);
-  attachInterrupt( digitalPinToInterrupt(ENGINE_START_BUTTON_PIN), engine_start, RISING);
-  pinMode( MOTOR_START_BUTTON_PIN, INPUT_PULLUP);
-  attachInterrupt( digitalPinToInterrupt(ENGINE_START_BUTTON_PIN), motor_start, RISING);
+  engine_start_button.begin();
+  motor_start_button.begin();
+  
 }
 
 /********** Main Loop ***************/
@@ -105,6 +101,27 @@ void loop() {
 
   can_delay_cycle = millis() - can_timeold;
   if (can_delay_cycle >= CAN_MSG_DELAY) message_cycle();
+
+
+  /* Engine/Motor Start Buttons*/
+  engine_start_button.read();
+
+  // send CAN message if start engine/motor buttons have been pushed
+  if(engine_start_button.wasReleased()) //returns true on falling edge, when there's a change in read() value
+  {
+    // send engine start CAN message
+    // Serial.println("SEND ENGINE CAN MSG");
+    // send_CAN_msg(); //TODO: set up messageID, 
+  }
+
+  if(motor_start_button.wasReleased())
+  {
+    // send motor start CAN message
+    Serial.println("SEND MOTOR CAN MSG");
+    // send_CAN_msg(); //TODO: set up messageID, 
+  }
+
+
 
 }
 
@@ -219,45 +236,6 @@ void CAN_message_handler()
     }
   }
 }
-
-
-/*
-  Function: The debounce() function sets a delay to avoid the switches "bounces" calling
-            the function multiple times. 
-            The ISR is still called on each "bounce" however, which could be changed by polling instead of using interrupts.
-*/
-bool debounce()
-{
-  // check to see if enough time has passed
-  // since the last press to ignore any noise:
-  if ((millis() - lastDebounceTime) > bounceDelay) {
-    lastDebounceTime = millis();
-    return true;
-  }
-  return false;
-}
-
-/*
-  Function: The engine_start() function sets the flag to send a CAN message to start the engine. 
-            It is an ISR called by pushing the Engine Start button on the steering wheel.
-*/
-void engine_start()
-{
-  if(debounce()) {
-    start_engine_flag = true;
-  }
-}
-
-/*
-  Function: The motor_start() sets the flag to send a CAN message to start the electric motor of the car.
-            It is an ISR called by pushing the Motor Start button on the steering wheel.
-*/
-void motor_start()
-{
-  if(debounce()) {
-    start_motor_flag = true;
-  }
-} 
 
 /*
   Function: The shift function reads the data message sent by the steering
