@@ -25,6 +25,12 @@ int message_num = 0;
 // will need a byte variable. Define any other constants or variables 
 // needed that can be defined outside of a function.
 
+// -> shift button vars
+#define SHIFT_UP_BUTTON_PIN = ##
+#define SHIFT_DOWN_BUTTON_PIN = ##
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 200;
+
 // -> engine start vars
 #define ENGINE_START_BUTTON_PIN ##
 Button engine_start_button(ENGINE_START_BUTTON_PIN, 100, true, true); //btn(pin, debounceTime, pullupEnabled, logicInvert)
@@ -88,9 +94,15 @@ void setup() {
   // TODO: Use setup for initializing the state of any variables
   // or initializing pinmodes/pin read or write. Anything that needs setup
 
-  // Engine and motor button setups
+  // engine and motor button setups
   engine_start_button.begin();
   motor_start_button.begin();
+
+  // shift button setups
+  pinMode( SHIFT_UP_BUTTON_PIN, INPUT_PULLUP );
+  attachInterrupt( digitalPinToInterrupt(SHIFT_UP_BUTTON_PIN), shift_up, FALLING ); // Sending signal on press, not release for some reason.
+  pinMode( SHIFT_DOWN_BUTTON_PIN, INPUT_PULLUP );
+  attachInterrupt( digitalPinToInterrupt(SHIFT_DOWN_BUTTON_PIN), shift_down, FALLING ); // Sending signal on press, not release for some reason.
   
 }
 
@@ -233,18 +245,34 @@ void CAN_message_handler()
 }
 
 /*
-  Function: The shift function reads the data message sent by the steering
-            wheel canduino and triggers the actuator attached to the shifter
-            such that the gear is shifted up or down relative to what value
-            is passed in the CAN message.
+  Function: The shift_up function is an ISR that sends a CAN message from the steering wheel canduino,
+            to the mid canduino to shift the gear up.
 */
-void shift()
+void shift_up()
 {
-  // verify that we are handling the correct task
-  if (canId == shift_CAN_ID && msg_length == 1)
-  {
-    // shift function implementation
-  }
+  //TODO: send CAN message to mid canduino to shift up gear actuator
 }
 
+/*
+  Function: The shift_up function is an ISR that sends a CAN message from the steering wheel canduino,
+            to the mid canduino to shift the gear down.
+*/
+void shift_down()
+{
+  //TODO: send CAN message to mid canduino to shift down gear actuator
+}
 
+/*
+  Function: The debounce() function debounces the buttons for the shift up and down ISR functions. 
+            The ISRs are still called on each "bounce", but only when debounced time has passed will it complete an action.
+*/
+bool debounce()
+{
+  // check to see if enough time has passed
+  // since the last press to ignore any noise:
+  if ((millis() - lastDebounceTime) > bounceDelay) {
+    lastDebounceTime = millis();
+    return true;
+  }
+  return false;
+}
