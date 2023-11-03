@@ -28,6 +28,8 @@ int message_num = 0;
 // -> shift button vars
 #define SHIFT_UP_BUTTON_PIN = ##
 #define SHIFT_DOWN_BUTTON_PIN = ##
+bool shift_up_flag = false;
+bool shift_down_flag = false;
 unsigned long lastDebounceTime = 0;
 unsigned long debounceDelay = 200;
 
@@ -129,6 +131,20 @@ void loop() {
   {
     // send motor start CAN message
     // send_CAN_msg(); //TODO: set up messageID, 
+  }
+
+  /*Shift messages*/
+  if(shift_up_flag)
+  {
+    // reset flag
+    shift_up_flag = false;
+    //send can_message 
+  }
+  if(shift_down_flag)
+  {
+    // reset flag
+    shift_down_flag = false;
+    //send can message
   }
 }
 
@@ -250,7 +266,7 @@ void CAN_message_handler()
 */
 void shift_up()
 {
-  //TODO: send CAN message to mid canduino to shift up gear actuator
+  shift_up_flag = true;
 }
 
 /*
@@ -259,7 +275,7 @@ void shift_up()
 */
 void shift_down()
 {
-  //TODO: send CAN message to mid canduino to shift down gear actuator
+  shift_down_flag = true;
 }
 
 /*
