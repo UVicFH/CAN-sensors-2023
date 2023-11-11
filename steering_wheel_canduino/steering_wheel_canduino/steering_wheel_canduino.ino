@@ -26,8 +26,8 @@ int message_num = 0;
 // needed that can be defined outside of a function.
 
 // -> shift button vars
-#define SHIFT_UP_BUTTON_PIN = ##
-#define SHIFT_DOWN_BUTTON_PIN = ##
+#define SHIFT_UP_BUTTON_PIN = 2;
+#define SHIFT_DOWN_BUTTON_PIN = 3;
 bool shift_up_flag = false;
 bool shift_down_flag = false;
 unsigned long lastDebounceTime = 0;
@@ -136,12 +136,14 @@ void loop() {
   /*Shift messages*/
   if(shift_up_flag)
   {
+    // TODO: Implement rpm checking to know if shift up should occur (is rpm > Min_value_rpm)
     // reset flag
     shift_up_flag = false;
     //send can_message 
   }
   if(shift_down_flag)
   {
+    // TODO: Implement rpm checking to know if shift down should occur (is rpm < Max_value_rpm)
     // reset flag
     shift_down_flag = false;
     //send can message
@@ -266,7 +268,7 @@ void CAN_message_handler()
 */
 void shift_up()
 {
-  shift_up_flag = true;
+  if(debounce()) shift_up_flag = true;
 }
 
 /*
@@ -275,7 +277,7 @@ void shift_up()
 */
 void shift_down()
 {
-  shift_down_flag = true;
+  if(debounce()) shift_down_flag = true;
 }
 
 /*
@@ -285,7 +287,7 @@ void shift_down()
 bool debounce()
 {
   // check to see if enough time has passed
-  // since the last press to ignore any noise:
+  // since the last signal to ignore any bounce:
   if ((millis() - lastDebounceTime) > bounceDelay) {
     lastDebounceTime = millis();
     return true;
